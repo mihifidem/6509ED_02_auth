@@ -1,0 +1,16 @@
+{% extends 'accounts/base.html' %}
+{% block content %}
+<h2>Editar perfil</h2>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <fieldset>
+    <legend>Datos de usuario</legend>
+    {{ uform.as_p }}
+  </fieldset>
+  <fieldset>
+    <legend>Datos del perfil</legend>
+    {{ pform.as_p }}
+  </fieldset>
+  <button type="submit">Guardar cambios</button>
+</form>
+{% endblock %}

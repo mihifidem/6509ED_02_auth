@@ -1,0 +1,11 @@
+{% extends 'accounts/base.html' %}
+{% block content %}
+<h2>Mi perfil</h2>
+<p><strong>Usuario:</strong> {{ request.user.username }}</p>
+<p><strong>Email:</strong> {{ request.user.email }}</p>
+<p><strong>Bio:</strong> {{ request.user.profile.bio|default:'(sin bio)' }}</p>
+{% if request.user.profile.avatar %}
+  <img src="{{ request.user.profile.avatar.url }}" width="100">
+{% endif %}
+<p><a href="{% url 'accounts:profile_edit' %}">Editar perfil</a></p>
+{% endblock %}
