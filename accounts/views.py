@@ -6,6 +6,21 @@ from django.contrib.auth.decorators import login_required
 from .forms import RegisterForm, UserUpdateForm, ProfileUpdateForm
 from .decorators import role_required
 
+from django.shortcuts import redirect
+
+def dashboard_redirect(request):
+    """
+    Redirige al dashboard correspondiente según el rol del usuario.
+    """
+    if request.user.is_authenticated:
+        if request.user.is_superuser or request.user.groups.filter(name='Admin').exists():
+            return redirect('accounts:admin_dashboard')
+        elif request.user.groups.filter(name='Teacher').exists():
+            return redirect('accounts:teacher_dashboard')
+        elif request.user.groups.filter(name='User').exists():
+            return redirect('accounts:user_dashboard')
+    # Si no tiene rol o no está logueado
+    return redirect('accounts:login')
 
 def home(request):
     return render(request, 'accounts/home.html')
