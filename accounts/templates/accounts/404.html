@@ -1,0 +1,12 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Ruta no existe (404){% endblock %}
+
+{% block content %}
+<div class="container text-center py-5">
+  <h1 class="text-danger display-4">🚫 Página no existe</h1>
+  <p class="lead">Verifique la ruta {{url_capturada}}.</p>
+  <hr class="my-4">
+  <a href="{% url 'accounts:home' %}" class="btn btn-outline-dark me-2">Volver al Home</a>
+</div>
+{% endblock %}

@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'accounts/base.html' %}
 
 {% block title %}Acceso Denegado (403){% endblock %}
 
@@ -7,7 +7,7 @@
   <h1 class="text-danger display-4">🚫 Acceso Denegado</h1>
   <p class="lead">No tienes permiso para acceder a esta sección del sitio.</p>
   <hr class="my-4">
-  <a href="{% url 'accounts:dashboard_redirect' %}" class="btn btn-outline-dark me-2">Volver al Dashboard</a>
+  <a href="{% url 'accounts:profile' %}" class="btn btn-outline-dark me-2">Volver al Profile</a>
   <a href="{% url 'accounts:logout' %}" class="btn btn-danger">Cerrar Sesión</a>
 </div>
 {% endblock %}

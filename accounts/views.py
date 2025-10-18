@@ -8,6 +8,64 @@ from .decorators import role_required
 
 from django.shortcuts import redirect
 
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.core.mail import EmailMessage
+from .tokens import account_activation_token
+from django.contrib.auth.models import User
+
+from django.http import HttpResponse
+
+def activate(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and account_activation_token.check_token(user, token):
+        user.is_active = True
+        user.save()
+        messages.success(request, 'Tu cuenta ha sido activada. Ahora puedes iniciar sesión.')
+        return redirect('accounts:login')
+    else:
+        return HttpResponse('El enlace de activación no es válido o ha expirado.')
+
+def register_view(request):
+    if request.method == 'POST':
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.is_active = False  # Desactiva la cuenta hasta confirmar email
+            user.save()
+
+            # --- Enviar correo de activación ---
+            current_site = get_current_site(request)
+            subject = 'Activa tu cuenta'
+            message = render_to_string('accounts/account_activation_email.html', {
+                'user': user,
+                'domain': current_site.domain,
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'token': account_activation_token.make_token(user),
+            })
+            email = EmailMessage(subject, message, to=[user.email])
+            email.send()
+
+            messages.info(request, "Te hemos enviado un enlace de activación a tu correo.")
+            return redirect('accounts:login')
+    else:
+        form = RegisterForm()
+    return render(request, 'accounts/register.html', {'form': form})
+
+
+
+def error_403(request, exception=None):
+    messages.error(request, "No tienes permiso para acceder a esta sección.")
+    return render(request, 'accounts/403.html', status=403)
+
+
 def dashboard_redirect(request):
     """
     Redirige al dashboard correspondiente según el rol del usuario.
@@ -30,20 +88,9 @@ def dashboard_view(request):
     return render(request, 'accounts/dashboard_base.html')
 
 @login_required
-@role_required('Teacher')
+@role_required('Teacher','Admin')
 def teacher_dashboard(request):
     return render(request, 'accounts/teacher_dashboard.html')
-
-def register_view(request):
-    if request.method == 'POST':                      # Si el usuario envía el formulario
-        form = RegisterForm(request.POST)             # Carga los datos del POST
-        if form.is_valid():                           # Valida los campos
-            user = form.save()                        # Guarda el usuario (crea User)
-            messages.success(request, "Cuenta creada correctamente. Ahora inicia sesión.")
-            return redirect('accounts:login')         # Redirige al login
-    else:
-        form = RegisterForm()                         # Si entra por primera vez, form vacío
-    return render(request, 'accounts/register.html', {'form': form})
 
 def login_view(request):
     if request.method == 'POST':
